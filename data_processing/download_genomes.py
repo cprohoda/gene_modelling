@@ -30,21 +30,32 @@ def nih_genomes_filenames(ftp, datafile):
                     abs_filename = posixpath.join(data_folder, filename)
                     genomes_filenames.append(abs_filename)
         except Exception as e:
-            print(type(e), e)
+            print('Error retrieving filenames for folder {}: {} {}'.format(folder, type(e), e))
             continue
     return genomes_filenames
 
 
-def get_files_from_cwd(ftp, remote_filenames, local_folder):
+def get_files_from_ftp(ftp, remote_filenames, local_folder, make_local_dirs=True):
     for filename in remote_filenames:
-        write_file = os.path.join(local_folder, posixpath.basename(filename))
-        with open(write_file,'w') as f:
-            ftp.retrbinary('RETR '+filename, f.write)
+        try:
+            write_file = os.path.join(local_folder, posixpath.basename(filename))
+            if make_local_dirs:
+                try:
+                    os.makedirs(local_folder)
+                except OSError as oserr:
+                    if oserr.errno != 17: # errno 17 means directory already exists
+                        print('Cannot create folder {}: {} {}'.format(local_folder, type(oserr), oserr))
+                        continue
+            with open(write_file,'w') as f:
+                ftp.retrbinary('RETR '+filename, f.write)
+        except Exception as e:
+            print('Error getting file {}: {} {}'.format(filename, type(e), e))
+            continue
 
 
 if __name__ == '__main__':
     args = resolve_args()
     ftp = nih_ftp()
     filenames = nih_genomes_filenames(ftp, args.datafile)
-    get_files_from_cwd(ftp=ftp, remote_filenames=filenames, local_folder=args.write_folder)
+    get_files_from_ftp(ftp=ftp, remote_filenames=filenames, local_folder=args.write_folder)
 
