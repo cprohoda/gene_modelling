@@ -26,10 +26,10 @@ def filter_genes(line):
     return filter_condition
 
 
-def writeline_genes(filename, line, args):
+def writeline_genes(filename, filtered_lines, args):
     write_file = os.path.join(args.write_folder, filename)
-    with open(write_file, 'a') as f:
-        f.write(line)
+    with open(write_file, 'w') as f:
+        f.write(filtered_lines)
 
 
 def extract_gene_number(line):
@@ -42,28 +42,29 @@ def extract_gene_number(line):
     return int(gene_number)
 
 
-def clean_processed(filename):
-    write_file = os.path.join(args.write_folder, filename)
-    if os.path.isfile(write_file):
-        os.remove(write_file)
-
-
 def process_all_gnomons(genes_present, args):
     read_files = os.listdir(args.read_folder)
     for read_file in read_files:
+        filtered_lines = ""
         read_file = os.path.join(args.read_folder, read_file)
         unzipped_filename = os.path.basename(read_file).rstrip('.gz')
-        clean_processed(filename=unzipped_filename)
         for line in gz_readline(read_file):
             try:
                 if filter_genes(line):
                     gene_number = extract_gene_number(line)
                     genes_present.loc[gene_number, unzipped_filename] = 1
-                    writeline_genes(filename=unzipped_filename, line=line, args=args)
+                    filtered_lines += line + '\n'
             except Exception as e:
                 print('Error processing line in file {}:\n{}\nError: {} {}'.format(read_file, line, type(e), e))
                 continue
-    genes_present.to_csv(args.gene_dataframe)
+        try:
+            writeline_genes(filename=unzipped_filename, filtered_lines=filtered_lines, args=args)
+        except Exception as e:
+            print('Error writing lines for file {}\nError: {} {}'.format(unzipped_filename, type(e), e))
+    try:
+        genes_present.to_csv(args.gene_dataframe)
+    except Exception as e:
+           print('Error writing gene dataframe to {}\nError: {} {}'.format(args.gene_dataframe, type(e), e))
 
 
 if __name__ == '__main__':
