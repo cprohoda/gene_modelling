@@ -49,8 +49,8 @@ def process_all_gnomons(genes_present, args):
         read_file = os.path.join(args.read_folder, read_file)
         unzipped_filename = os.path.basename(read_file).rstrip('.gz')
         write_file = os.path.join(args.write_folder, unzipped_filename)
-
-        if args.overwrite or !os.path.isfile(write_file):
+        if args.overwrite or not os.path.isfile(write_file):
+            print('Processing {} to {}'.format(read_file, write_file))
             for line in gz_readline(read_file):
                 try:
                     if filter_genes(line):
@@ -64,6 +64,8 @@ def process_all_gnomons(genes_present, args):
                     writeline_genes(filename=write_file, filtered_lines=filtered_lines, args=args)
             except Exception as e:
                 print('Error writing lines for file {}\nError: {} {}'.format(unzipped_filename, type(e), e))
+        else:
+            print('Found {}. Skipping {}.'.format(write_file, read_file))
     try:
         genes_present.to_csv(args.gene_dataframe)
     except Exception as e:
