@@ -8,7 +8,7 @@ import re
 def resolve_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--read_folder', dest='read_folder', default='../genomes/', help='local folder to read raw gzipped files')
-    parser.add_argument('--input_files', dest='input_files', default='*.gff3.gz', help='all files in folder')
+    parser.add_argument('--input_files', dest='input_files', default=None, nargs='*', help='specifiy files; default all files in folder')
     parser.add_argument('--write_folder', dest='write_folder', default='../processed_genomes/', help='local folder to write processed files')
     parser.add_argument('--gene_dataframe', dest='gene_dataframe', default='../processed_genomes/genes_present', help='dataframe file with the genes per file')
     parser.add_argument('--overwrite', default=False, action='store_true')
@@ -42,8 +42,14 @@ def extract_gene_number(line):
     return int(gene_number)
 
 
+def get_read_files(args):
+    if args.input_files:
+        return args.input_files
+    else:
+        return os.listdir(args.read_folder)
+
 def process_all_gnomons(genes_present, args):
-    read_files = os.listdir(args.read_folder)
+    read_files = get_read_files(args)
     for read_file in read_files:
         filtered_lines = ""
         read_file = os.path.join(args.read_folder, read_file)
