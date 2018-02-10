@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import argparse
 import re
+import cProfile
 
 
 def resolve_args():
@@ -12,6 +13,7 @@ def resolve_args():
     parser.add_argument('--write_folder', dest='write_folder', default='../processed_genomes/', help='local folder to write processed files')
     parser.add_argument('--gene_dataframe', dest='gene_dataframe', default='../processed_genomes/genes_present', help='dataframe file with the genes per file')
     parser.add_argument('--overwrite', default=False, action='store_true')
+    parser.add_argument('--profile', default=False, action='store_true')
     args = parser.parse_args()
     return args
 
@@ -75,7 +77,7 @@ def process_all_gnomons(genes_present, args):
     try:
         genes_present.to_csv(args.gene_dataframe)
     except Exception as e:
-           print('Error writing gene dataframe to {}\nError: {} {}'.format(args.gene_dataframe, type(e), e))
+        print('Error writing gene dataframe to {}\nError: {} {}'.format(args.gene_dataframe, type(e), e))
 
 
 if __name__ == '__main__':
@@ -84,4 +86,7 @@ if __name__ == '__main__':
         genes_df = pd.read_csv(args.gene_dataframe, index_col=0)
     else:
         genes_df = pd.DataFrame()
-    process_all_gnomons(genes_present=genes_df, args=args)
+    if args.profile:
+        pr = cProfile.run('process_all_gnomons(genes_present=genes_df, args=args)')
+    else:
+        process_all_gnomons(genes_present=genes_df, args=args)
