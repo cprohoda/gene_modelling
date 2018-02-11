@@ -3,14 +3,7 @@ import argparse
 import os
 import posixpath
 
-
-def resolve_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--datafile', dest='datafile', default='Gnomon', help='datafile name to get from source, defaults to genomon')
-    parser.add_argument('--write_folder', dest='write_folder', default='../genomes/', help='local folder to write files')
-    args = parser.parse_args()
-    return args
-
+from .gene_modelling_utils import parse_args
 
 def nih_ftp():
     ftp = FTP('ftp.ncbi.nlm.nih.gov')
