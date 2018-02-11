@@ -8,5 +8,6 @@ def resolve_args():
     parser.add_argument('--data_type', dest='datafile', default='Gnomon', help='datafile name to get from source, defaults to Gnomon')
     parser.add_argument('--overwrite', default=False, action='store_true')
     parser.add_argument('--profile', default=False, action='store_true')
+    parser.add_argument('--gene_map_filename', dest='gene_map_filename', default='gene_map', help='filename of genes present in each file in the processed folder')
     args = parser.parse_args()
     return args

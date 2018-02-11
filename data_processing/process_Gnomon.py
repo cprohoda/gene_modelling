@@ -20,16 +20,6 @@ def writeline_genes(filename, filtered_lines, args):
         f.write(filtered_lines)
 
 
-def extract_gene_number(line):
-    pattern = re.compile(r'.*Name=gene\.(.*?);.*')
-    pattern_matched = pattern.search(line)
-    if pattern_matched:
-        gene_number = pattern_matched.group(1)
-    else:
-        raise ValueError('Gene number not identified in line: {}'.format(line))
-    return int(gene_number)
-
-
 def get_read_files(args):
     if args.input_files:
         not_found = []
@@ -42,6 +32,7 @@ def get_read_files(args):
             return args.input_files
     else:
         return os.listdir(args.raw_data_folder)
+
 
 def process_all_gnomons(args):
     read_files = get_read_files(args)
