@@ -5,6 +5,7 @@ import posixpath
 
 from .gene_modelling_utils import parse_args
 
+
 def nih_ftp():
     ftp = FTP('ftp.ncbi.nlm.nih.gov')
     ftp.login()

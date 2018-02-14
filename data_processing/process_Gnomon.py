@@ -2,6 +2,9 @@ import gzip
 import os
 import re
 import cProfile
+import argparse
+
+from .gene_modelling_utils import resolve_args
 
 
 def gz_readline(filename):
@@ -46,7 +49,6 @@ def process_all_gnomons(args):
             for line in gz_readline(read_file):
                 try:
                     if filter_genes(line):
-                        gene_number = extract_gene_number(line)
                         filtered_lines += line + '\n'
                 except Exception as e:
                     print('Error processing line in file {}:\n{}\nError: {} {}'.format(read_file, line, type(e), e))
@@ -61,6 +63,7 @@ def process_all_gnomons(args):
 
 if __name__ == '__main__':
     args = resolve_args()
+    print(args)
     if args.profile:
         cProfile.run('process_all_gnomons(args)')
     else:
