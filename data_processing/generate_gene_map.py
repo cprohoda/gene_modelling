@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import re
+import cProfile
 
 from .gene_modelling_utils import resolve_args
 
@@ -66,7 +67,10 @@ def get_processed_files(processed_folder):
 def main():
     args = resolve_args()
     gene_map = GeneMap(args)
-    gene_map.build()
+    if args.profile:
+        cProfile.runctx('gene_map.build()', None, locals())
+    else:
+        gene_map.build()
     gene_map.write()
 
 
