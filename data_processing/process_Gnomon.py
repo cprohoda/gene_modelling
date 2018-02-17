@@ -49,7 +49,7 @@ def process_all_gnomons(args):
             for line in gz_readline(read_file):
                 try:
                     if filter_genes(line):
-                        filtered_lines += line + '\n'
+                        filtered_lines += line
                 except Exception as e:
                     print('Error processing line in file {}:\n{}\nError: {} {}'.format(read_file, line, type(e), e))
                     continue
@@ -61,10 +61,13 @@ def process_all_gnomons(args):
             print('Found {}. Skipping {}.'.format(write_file, read_file))
 
 
-if __name__ == '__main__':
+def main():
     args = resolve_args()
-    print(args)
     if args.profile:
         cProfile.run('process_all_gnomons(args)')
     else:
         process_all_gnomons(args)
+
+
+if __name__ == '__main__':
+    main()

@@ -3,7 +3,7 @@ import argparse
 import os
 import posixpath
 
-from .gene_modelling_utils import parse_args
+from .gene_modelling_utils import resolve_args
 
 
 def nih_ftp():
@@ -12,12 +12,12 @@ def nih_ftp():
     return ftp
 
 
-def nih_genomes_filenames(ftp, datafile):
+def nih_genomes_filenames(ftp, data_filetype):
     genomes_filenames = []
     folders = ftp.nlst('/genomes')
     for folder in folders:
         try: 
-            data_folder = posixpath.join('/genomes', folder, datafile)
+            data_folder = posixpath.join('/genomes', folder, data_filetype)
             filenames = ftp.nlst(data_folder)
             for filename in filenames:
                 if '_top_level.gff3.gz' in filename:
@@ -29,27 +29,31 @@ def nih_genomes_filenames(ftp, datafile):
     return genomes_filenames
 
 
-def get_files_from_ftp(ftp, remote_filenames, local_folder, make_local_dirs=True):
+def get_files_from_ftp(ftp, remote_filenames, args):
     for filename in remote_filenames:
         try:
-            write_file = os.path.join(local_folder, posixpath.basename(filename))
-            if make_local_dirs:
-                try:
-                    os.makedirs(local_folder)
-                except OSError as oserr:
-                    if oserr.errno != 17: # errno 17 means directory already exists
-                        print('Cannot create folder {}: {} {}'.format(local_folder, type(oserr), oserr))
-                        continue
-            with open(write_file,'w') as f:
-                ftp.retrbinary('RETR '+filename, f.write)
+            write_file = os.path.join(args.raw_data_folder, posixpath.basename(filename))
+            if args.overwrite or not os.path.isfile(write_file):
+                if args.make_local_dirs:
+                    try:
+                        os.makedirs(local_folder)
+                    except OSError as oserr:
+                        if oserr.errno != 17: # errno 17 means directory already exists
+                            print('Cannot create folder {}: {} {}'.format(local_folder, type(oserr), oserr))
+                            continue
+                with open(write_file,'w') as f:
+                    ftp.retrbinary('RETR '+filename, f.write)
         except Exception as e:
             print('Error getting file {}: {} {}'.format(filename, type(e), e))
             continue
 
 
-if __name__ == '__main__':
+def main():
     args = resolve_args()
     ftp = nih_ftp()
-    filenames = nih_genomes_filenames(ftp, args.datafile)
-    get_files_from_ftp(ftp=ftp, remote_filenames=filenames, local_folder=args.write_folder)
+    filenames = nih_genomes_filenames(ftp=ftp, data_filetype=args.data_filetype)
+    get_files_from_ftp(ftp=ftp, remote_filenames=filenames, args=args)
 
+
+if __name__ == '__main__':
+    main()
