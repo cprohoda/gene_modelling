@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import os
 import re
 import cProfile
@@ -12,13 +13,14 @@ class GeneMap:
         self.processed_folder = args.processed_folder
         self.genes_df = self.init_gene_map(args)
         self.gene_index_map = {}
+        self.gene_index_length = 0
 
     def init_gene_map(self, args):
         if args.overwrite or not os.path.isfile(args.gene_map_filename):
             processed_filenames = os.listdir(args.processed_folder)
-            genes_df = pd.DataFrame(columns=processed_filenames, index=range(50000))
+            genes_df = pd.DataFrame(columns=processed_filenames, index=range(50000), data=np.full((50000, len(processed_filenames)), False)).astype(dtype=bool)
         else:
-            genes_df = pd.read_csv(args.gene_map_filename, index_col=0)
+            genes_df = pd.read_csv(args.gene_map_filename, index_col=0).astype(dtype=bool)
         return genes_df
 
     def build(self):
@@ -28,8 +30,7 @@ class GeneMap:
                 print("Building gene map from file: {}".format(file.name))
                 for line in file:
                     gene_index = self.map_gene_index(extract_gene_number(line))
-
-                    self.genes_df.loc[gene_index, basename] = 1
+                    self.genes_df.loc[gene_index, basename] = True
                 print("Memory usage: {}".format(self.genes_df.memory_usage(index=True).sum()))
         except Exception as e:
             print('Error generating gene map to {}\nError: {} {}'.format(self.gene_map_filename, type(e), e))
@@ -39,7 +40,8 @@ class GeneMap:
         if gene_number in self.gene_index_map:
             return self.gene_index_map[gene_number]
         else:
-            self.gene_index_map[gene_number] = len(self.gene_index_map)
+            self.gene_index_map[gene_number] = self.gene_index_length
+            self.gene_index_length += 1
             return self.gene_index_map[gene_number]
 
     def write(self, args):
