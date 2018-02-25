@@ -30,7 +30,7 @@ def get_read_files(args):
             if not os.path.isfile(filename):
                 not_found.append(filename)
         if not_found:
-            raise ValueError('Specified input files not found: {}'.format(file))
+            raise ValueError('Specified input files not found: {}'.format(not_found))
         else:
             return args.input_files
     else:
