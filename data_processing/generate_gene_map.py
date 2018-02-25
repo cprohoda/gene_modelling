@@ -3,6 +3,7 @@ import numpy as np
 import os
 import re
 import cProfile
+import json
 
 from .gene_modelling_utils import resolve_args
 
@@ -10,28 +11,34 @@ from .gene_modelling_utils import resolve_args
 class GeneMap:
     def __init__(self, args):
         self.gene_map_filename = args.gene_map_filename
+        self.gene_index_map_filename = args.gene_index_map_filename
         self.processed_folder = args.processed_folder
-        self.genes_df = self.init_gene_map(args)
+        self.overwrite = args.overwrite
+        self.gene_map = set()
         self.gene_index_map = {}
         self.gene_index_length = 0
 
-    def init_gene_map(self, args):
-        if args.overwrite or not os.path.isfile(args.gene_map_filename):
-            processed_filenames = os.listdir(args.processed_folder)
-            genes_df = pd.DataFrame(columns=processed_filenames, index=range(50000), data=np.full((50000, len(processed_filenames)), False)).astype(dtype=bool)
-        else:
-            genes_df = pd.read_csv(args.gene_map_filename, index_col=0).astype(dtype=bool)
-        return genes_df
+    def generate_gene_index_map(self):
+        for basename, line in generate_processed_lines(self.processed_folder):
+            self.map_gene_index(extract_gene_number(line))
+        with open(self.gene_index_map_filename, 'w') as f:
+            f.write(json.dumps(self.gene_index_map))
+
+    def generate_each_gene_map(self):
+        previous_basename = ''
+        for basename, line in generate_processed_lines(self.processed_folder):
+            if basename != previous_basename and previous_basename != '':
+                self.append_gene_map_to_csv(previous_basename)
+                self.gene_map = set()
+                print('{} gene map written'.format(previous_basename))
+            self.gene_map.add(extract_gene_number(line))
+            previous_basename = basename
 
     def build(self):
         try:
-            for file in get_processed_files(self.processed_folder):
-                basename = os.path.basename(file.name)
-                print("Building gene map from file: {}".format(file.name))
-                for line in file:
-                    gene_index = self.map_gene_index(extract_gene_number(line))
-                    self.genes_df.loc[gene_index, basename] = True
-                print("Memory usage: {}".format(self.genes_df.memory_usage(index=True).sum()))
+            if self.overwrite or not os.path.isfile(self.gene_map_filename) or not os.path.isfile(self.gene_index_map_filename):
+                self.generate_gene_index_map()
+                self.generate_each_gene_map()
         except Exception as e:
             print('Error generating gene map to {}\nError: {} {}'.format(self.gene_map_filename, type(e), e))
             raise
@@ -44,8 +51,16 @@ class GeneMap:
             self.gene_index_length += 1
             return self.gene_index_map[gene_number]
 
-    def write(self, args):
-        self.genes_df.to_csv(self.gene_map_filename)
+    def append_gene_map_to_csv(self, organism_name):
+        with open(self.gene_map_filename, 'a') as f:
+            f.write(organism_name + ',')
+            for num in range(self.gene_index_length):
+                if num in self.gene_map:
+                    f.write(str(num))
+                if num != (self.gene_index_length-1):
+                    f.write(',')
+                else:
+                    f.write('\n')
 
 
 def extract_gene_number(line):
@@ -56,6 +71,13 @@ def extract_gene_number(line):
     else:
         raise ValueError('Gene number not identified in line: {}'.format(line))
     return int(gene_number)
+
+
+def generate_processed_lines(processed_folder):
+    for file in get_processed_files(processed_folder):
+            basename = os.path.basename(file.name)
+            for line in file:
+                yield basename, line
 
 
 def get_processed_files(processed_folder):
