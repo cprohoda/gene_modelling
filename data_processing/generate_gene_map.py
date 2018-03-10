@@ -95,7 +95,6 @@ def main():
         cProfile.runctx('gene_map.build()', None, locals())
     else:
         gene_map.build()
-    gene_map.write()
 
 
 if __name__ == '__main__':
