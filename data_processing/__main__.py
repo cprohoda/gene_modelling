@@ -1,6 +1,7 @@
 import download_genomes
 import process_Gnomon
 import generate_gene_map
+import gene_clustering
 from gene_modelling_utils import resolve_args
 
 if __name__=='__main__':
@@ -11,3 +12,5 @@ if __name__=='__main__':
         process_Gnomon.main()
     if 'generate_gene_map' in args.scripts:
         generate_gene_map.main()
+    if 'gene_clustering' in args.scripts:
+        gene_clustering.main()
