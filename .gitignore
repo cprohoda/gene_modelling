@@ -104,3 +104,6 @@ ENV/
 # Datafiles
 genomes/
 processed_genomes/
+gene_index
+gene_map
+similarity
