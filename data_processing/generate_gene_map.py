@@ -22,7 +22,7 @@ class GeneMap:
         for basename, line in generate_processed_lines(self.processed_folder):
             self.map_gene_index(extract_gene_number(line))
         with open(self.gene_index_map_filename, 'w') as f:
-            f.write(json.dumps(self.gene_index_map))
+            f.write(json.dumps(self.gene_index_map, indent=2, separators=(',', ': ')))
 
     def generate_each_gene_map(self):
         previous_basename = ''
